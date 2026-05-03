@@ -85,12 +85,24 @@ def preprocess_plate(
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
     enhanced = clahe.apply(blurred)
 
-    # ── Step 5: Sharpening via unsharp mask ──────────────────────────────
+    # ── Step 5: Aggressive Sharpening ──────────────────────────────────
+    # Variant A: Unsharp Mask (Standard)
     gaussian = cv2.GaussianBlur(enhanced, (0, 0), 3)
     sharp = cv2.addWeighted(enhanced, 1.5, gaussian, -0.5, 0)
 
+    # Variant B: Laplacian Sharpening (Aggressive edge detection)
+    # This helps when the characters are "smeared" into the background.
+    laplacian = cv2.Laplacian(enhanced, cv2.CV_64F)
+    sharp_laplacian = np.uint8(np.clip(enhanced - 0.5 * laplacian, 0, 255))
+
+    # Variant C: Custom 3x3 Sharpening Kernel (Extreme)
+    # Good for heavy motion blur where edges are lost.
+    kernel_sharp = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    ultra_sharp = cv2.filter2D(enhanced, -1, kernel_sharp)
+
     # ── Step 6: Bilateral filter (edge-preserving denoise) ───────────────
     denoised = cv2.bilateralFilter(sharp, d=9, sigmaColor=75, sigmaSpace=75)
+    denoised_ultra = cv2.bilateralFilter(ultra_sharp, d=7, sigmaColor=50, sigmaSpace=50)
 
     # ── Step 7: Adaptive threshold (Gaussian) ────────────────────────────
     binary_adaptive = cv2.adaptiveThreshold(
@@ -126,6 +138,8 @@ def preprocess_plate(
             "4_blurred": blurred,
             "5_clahe": enhanced,
             "6_sharp": sharp,
+            "6b_laplacian": sharp_laplacian,
+            "6c_ultra_sharp": ultra_sharp,
             "7_denoised": denoised,
             "8_binary_adaptive": cleaned_adaptive,
             "9_binary_otsu": cleaned_otsu,
@@ -137,6 +151,8 @@ def preprocess_plate(
         "binary_otsu": cleaned_otsu,
         "binary_inv": cleaned_inv,
         "enhanced": denoised,
+        "ultra_sharp": denoised_ultra,
+        "laplacian": sharp_laplacian,
         "sharp": sharp,
         "gray": gray,
     }

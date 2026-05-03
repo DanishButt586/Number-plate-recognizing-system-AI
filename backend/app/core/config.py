@@ -59,8 +59,8 @@ class Settings(BaseSettings):
     # Reject OCR reads that are too weak/noisy to trust.
     ANPR_MIN_PLATE_CHARS: int = 4
     ANPR_MAX_PLATE_CHARS: int = 10
-    ANPR_MIN_OCR_CONFIDENCE: float = 0.30
-    ANPR_MIN_COMBINED_CONFIDENCE: float = 0.20
+    ANPR_MIN_OCR_CONFIDENCE: float = 0.15      # Lowered from 0.30 to allow blurry plates
+    ANPR_MIN_COMBINED_CONFIDENCE: float = 0.10 # Lowered from 0.20 to allow blurry plates
     # ── Training ─────────────────────────────────────────────────────
     TRAINING_DATA_YAML: str = str(
         Path(__file__).resolve().parents[2] / "dataset" / "data.yaml"

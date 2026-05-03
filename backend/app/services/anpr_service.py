@@ -204,9 +204,9 @@ def _process_single_plate(
 
     # ── Stage 4: OCR with fallback strategy ─────────────────────────────
     # Try all preprocessed variants and pick the best result.
-    # Order: enhanced first (best for real photos), then binary variants,
-    # then sharp, then gray as fallback.
-    variant_order = ("enhanced", "sharp", "binary", "binary_otsu", "binary_inv", "gray")
+    # Order: enhanced first, then aggressive sharpening variants, 
+    # then binary variants, then gray as fallback.
+    variant_order = ("enhanced", "ultra_sharp", "laplacian", "sharp", "binary", "binary_otsu", "binary_inv", "gray")
     best_ocr = None
     best_variant = None
     best_score = -1.0
