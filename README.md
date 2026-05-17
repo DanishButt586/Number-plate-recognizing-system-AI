@@ -1,57 +1,146 @@
-# 🚗 Pakistan ANPR: Production-Grade Automatic Number Plate Recognition
-### 🎓 6th Semester DIP Project | Automated Monitoring & Enforcement System
+<div align="center">
+  <img src="https://img.icons8.com/color/96/000000/traffic-jam.png" alt="Logo">
+  
+  # 🚗 Pakistan ANPR System
+  **Production-Grade Automatic Number Plate Recognition**
+  
+  *🎓 6th Semester Digital Image Processing (DIP) Project | Automated Monitoring & Enforcement*
 
-A comprehensive, localized **Automatic Number Plate Recognition (ANPR)** system engineered for the Pakistani context. This project integrates state-of-the-art Computer Vision (YOLOv8) and Deep Learning (EasyOCR) to provide a real-time monitoring solution with a full-stack dashboard.
+  [![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+  [![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+  [![YOLOv8](https://img.shields.io/badge/YOLOv8-FF1493?style=for-the-badge&logo=ultralytics&logoColor=white)](https://ultralytics.com/)
+  [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
+</div>
 
-![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-Production--Ready-green?logo=fastapi)
-![Next.js](https://img.shields.io/badge/Next.js-v15-black?logo=next.js)
-![YOLOv8](https://img.shields.io/badge/YOLOv8-37--Class--Character--Model-purple)
+<br />
+
+> A comprehensive, highly-localized **Automatic Number Plate Recognition (ANPR)** system engineered specifically for the Pakistani context. This project fuses state-of-the-art Computer Vision (YOLOv8) and Deep Learning OCR (EasyOCR) to provide a robust, real-time vehicle monitoring solution backed by a beautiful full-stack dashboard.
 
 ---
 
 ## 🏛️ System Architecture
 
-The system follows a modular, service-oriented architecture designed for high throughput and stability.
+Our system follows a modular, service-oriented architecture designed for high throughput, strict security, and zero-latency video processing.
 
 ```mermaid
 graph TD
-    A[Video Stream / Image] --> B[YOLOv8 Character-Level Detector]
-    B --> C[Vehicle Tracker & Temporal Smoothing]
-    C --> D[Multi-Variant OCR Engine]
-    D --> E[Pakistan-Specific Format Normalizer]
-    E --> F[SQLAlchemy / SQLite Database]
-    F --> G[Real-time WebSocket Push]
-    G --> H[Next.js Analytics Dashboard]
-    D --> I[Evidence Storage System]
+    subgraph Frontend [Next.js Analytics Dashboard]
+        UI[Live Camera Feed]
+        D[Metrics & History Charts]
+    end
+
+    subgraph Backend [FastAPI Server]
+        direction TB
+        WS[WebSocket Manager]
+        YOLO[YOLOv8 Character-Level Detector]
+        TRACK[Vehicle Tracker & Temporal Smoothing]
+        OCR[Multi-Variant OCR Engine]
+        NORM[Pakistan Format Normalizer]
+    end
+
+    subgraph Storage [Persistence Layer]
+        DB[(SQLite Database)]
+        DISK[Evidence Storage System]
+    end
+
+    UI -- Base64 Frame --> WS
+    WS --> YOLO
+    YOLO --> TRACK
+    TRACK --> OCR
+    OCR --> NORM
+    NORM --> DB
+    NORM --> DISK
+    NORM -- JSON Response --> WS
+    WS -- Real-time Sync --> D
+    
+    classDef frontend fill:#000000,stroke:#333,stroke-width:2px,color:#fff;
+    classDef backend fill:#009688,stroke:#333,stroke-width:2px,color:#fff;
+    classDef storage fill:#3776AB,stroke:#333,stroke-width:2px,color:#fff;
+    
+    class UI,D frontend;
+    class WS,YOLO,TRACK,OCR,NORM backend;
+    class DB,DISK storage;
 ```
 
 ---
 
-## ✨ Localized Features (Pakistan Context)
+## 🔍 The ANPR Pipeline (Under the Hood)
 
-Unlike generic ANPR systems, this project is fine-tuned for the unique plate formats found in Pakistan:
+We didn't just use a basic model; we built an entire image enhancement pipeline to ensure plates are readable even in terrible conditions (nighttime, motion blur, fog).
 
-- **Character-Level YOLOv8 Model:** Our model detects 37 classes (A-Z, 0-9, and the plate boundary) to ensure high precision even in low lighting.
-- **Punjab/Sindh Universal Series:** Built-in regex support for the latest "Smart Card" style plates (e.g., `AAA-123`, `AZ-123-456`).
-- **Temporal Smoothing (Stability Fix):** Majority-voting logic ensures the "Live" detection text remains stable even if a car is moving fast or the image is vibrating.
-- **Evidence Storage:** Automatically saves high-resolution crops of every detected plate in an `uploads/evidence/` folder for legal verification.
-- **Dual-OCR Logic:** (Experimental) Support for fallback engines to handle the FE-Schrift font used in modern Pakistani plates.
+```mermaid
+sequenceDiagram
+    participant I as Image Input
+    participant D as Smart Diagnosis
+    participant E as Pre-Detection Enhancer
+    participant Y as YOLOv8 (37 Classes)
+    participant C as Plate Cropper
+    participant O as EasyOCR
+    
+    I->>D: 1. Evaluate Blur & Light
+    D->>E: 2. Apply LIME/CLAHE & Deblur
+    E->>Y: 3. Detect Bounding Boxes
+    Y->>C: 4. Extract Plate Region
+    C->>O: 5. Multi-Variant OCR Scoring
+    O-->>I: 6. Cleaned Pakistani Plate Text
+```
 
 ---
 
-## 📊 Analytics & Evaluation
+## ✨ Key Features & Localized Context
 
-The system includes a dedicated **Evaluation Service** that calculates academic performance metrics:
+Unlike generic ANPR systems, this project is fine-tuned for the unique rules and aesthetics of Pakistani license plates:
+
+*   🎯 **Character-Level YOLOv8 Model:** Our model detects 37 unique classes (A-Z, 0-9, and the plate boundary). By understanding characters rather than just a blurry rectangle, we ensure high precision in low lighting.
+*   🇵🇰 **Universal Smart Card Support:** Built-in regex parsing for the latest Punjab/Sindh Universal Series (e.g., `AAA-123`, `AZ-123-456`) alongside legacy city codes (`LEA-1234`).
+*   ⚖️ **Temporal Smoothing (Stability Fix):** Built a custom `VehicleTracker` that uses a majority-voting algorithm over a 7-frame window. This ensures the "Live" text feed remains rock-solid and flicker-free, even on fast-moving cars.
+*   📸 **Cryptographic Evidence Storage:** Automatically saves high-resolution crops of every detected plate in `uploads/evidence/` for legal verification.
+*   🚀 **Graceful Degradation:** Smart CPU/GPU detection limits aggressive enhancements on live video streams to maintain high FPS while employing maximum AI power on static image uploads.
+
+---
+
+## 💾 Database Schema (Entity Relationship)
+
+```mermaid
+erDiagram
+    DETECTION {
+        uuid id PK
+        string plate_text
+        float confidence
+        json bbox
+        string crop_path "Evidence Image"
+        datetime detected_at
+    }
+    UNAUTHORIZED_LOG {
+        int id PK
+        string plate_number
+        string location
+        datetime detected_at
+    }
+    AUTHORIZED_VEHICLE {
+        int id PK
+        string plate_number
+        string owner_name
+    }
+    
+    DETECTION ||--o| UNAUTHORIZED_LOG : "triggers (if unfound)"
+    DETECTION }|--o| AUTHORIZED_VEHICLE : "fuzzy matches"
+```
+
+---
+
+## 📈 Analytics & Academic Evaluation
+
+The system includes a dedicated **Evaluation Service** designed to prove algorithmic efficiency for academic grading:
 
 - **mAP (Mean Average Precision):** Evaluated against the Roboflow ANPR dataset.
-- **OCR Accuracy:** Calculated via Levenshtein distance against known authorized vehicles.
-- **Throughput:** Real-time FPS monitoring and per-frame latency tracking.
-- **Security Audit:** Automated logging of unauthorized vehicles with timestamped photo evidence.
+- **F1-Score Proxy:** Uses high-confidence reads vs low-confidence reads to estimate real-world Precision/Recall.
+- **Throughput:** Real-time FPS monitoring and per-stage latency tracking (Diagnosis -> Lighting -> Deblur -> Detection -> OCR).
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
 ### 1. Prerequisites
 - **Python 3.13** (Windows/Linux/Mac)
@@ -60,41 +149,49 @@ The system includes a dedicated **Evaluation Service** that calculates academic 
 
 ### 2. Installation
 ```bash
-# Backend
+# Clone the repository
+git clone https://github.com/rayyan123571/Automated-Number-plate-Recognition.git
+cd Automated-Number-plate-Recognition
+
+# Backend Setup
 cd backend
 python -m venv .venv
+# Activate (Windows)
 .\.venv\Scripts\activate
+# Activate (Linux/Mac)
+source .venv/bin/activate
 pip install -r requirements.txt
 
-# Frontend
-cd frontend
+# Frontend Setup
+cd ../frontend
 npm install
 ```
 
 ### 3. Execution
-- **Run Backend:** `start_backend.bat` (Port 8000)
-- **Run Frontend:** `start_frontend.bat` (Port 3000)
+- **Run Backend:** `start_backend.bat` (API on Port 8000)
+- **Run Frontend:** `start_frontend.bat` (Dashboard on Port 3000)
 
 ---
 
-## 📁 Engineering Standards
+## 🛠️ Engineering Standards
 
-- **Backend:** Clean Architecture with dependency injection (FastAPI).
+- **Backend:** Clean Architecture with Dependency Injection (FastAPI).
 - **Frontend:** Glassmorphism UI using Tailwind CSS v4 and Framer Motion.
-- **State Management:** TanStack Query for high-performance data fetching.
+- **State Management:** TanStack Query for high-performance WebSocket data syncing.
 - **Database:** SQLite with SQLAlchemy 2.x for lightweight but powerful persistence.
 
 ---
 
-## 📊 Dataset Reference
-The project utilizes a fine-tuned version of the [ANPR v4 dataset](https://universe.roboflow.com/), augmented with local Pakistani vehicle variations.
-- **Training Set:** 1,146 images
-- **Resolution:** 1280px (optimized for distant capture)
+## 👥 Meet the Developers
+
+This project was architected, trained, and developed by:
+
+*   💻 **[@DanishButt586](https://github.com/DanishButt586)** — Full-Stack Integration & System Architecture
+*   🧠 **[@rayyan123571](https://github.com/rayyan123571)** — Computer Vision, YOLOv8 Training, & OCR Optimization
+
+*For any inquiries regarding the dataset, model weights, or system architecture, please reach out via GitHub issues.*
 
 ---
 
-## 📄 License
+## 📄 License & Academic Integrity
 This project is for academic purposes as part of the 6th Semester Digital Image Processing (DIP) curriculum. Distributed under the MIT License.
-
----
-**Developed by Rayyan & Team | 2026**
